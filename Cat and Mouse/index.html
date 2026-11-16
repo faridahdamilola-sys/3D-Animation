@@ -1,0 +1,311 @@
+cat and mouse animation
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Cat and Mouse Animation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+
+// ========================================
+// 1. SCENE SETUP
+// ========================================
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xb8dce8);
+
+const camera = new THREE.PerspectiveCamera(
+    60, window.innerWidth / window.innerHeight, 0.1, 1000
+);
+
+camera.position.set(0, 6, 12);
+camera.lookAt(0, 1.5, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+
+// ========================================
+// 2. LIGHTING
+// ========================================
+
+scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+
+const light = new THREE.DirectionalLight(0xffffff, 2);
+light.position.set(5, 10, 5);
+light.castShadow = true;
+scene.add(light);
+
+
+// ========================================
+// 3. MATERIALS
+// ========================================
+
+const catMaterial = new THREE.MeshStandardMaterial({color:0xf4a460});
+const whiteMaterial = new THREE.MeshStandardMaterial({color:0xffffff});
+const blackMaterial = new THREE.MeshStandardMaterial({color:0x222222});
+const pinkMaterial = new THREE.MeshStandardMaterial({color:0xff8fa3});
+const mouseMaterial = new THREE.MeshStandardMaterial({color:0x888888});
+
+
+// ========================================
+// 4. HELPER FUNCTION
+// ========================================
+
+function sphere(parent,x,y,z,sx,sy,sz,material) {
+
+    const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1,32,32),material
+    );
+
+    mesh.position.set(x,y,z);
+    mesh.scale.set(sx,sy,sz);
+    mesh.castShadow = true;
+
+    parent.add(mesh);
+
+    return mesh;
+}
+
+
+// ========================================
+// 5. CREATE THE CAT
+// ========================================
+
+const cat = new THREE.Group();
+scene.add(cat);
+
+// Body
+sphere(cat,0,1,0,0.8,1,0.6,catMaterial);
+
+// Create separate head group
+const catHead = new THREE.Group();
+//catHead.position.set(0,1.8,0.2);
+cat.add(catHead);
+
+// Head
+sphere(catHead,0,2.3,0.2,0.8,0.75,0.65,catMaterial);
+
+// Ears
+function createEar(x) {
+
+    const ear = new THREE.Mesh(
+        new THREE.ConeGeometry(0.3,0.7,4),
+        catMaterial
+    );
+
+    ear.position.set(x,3.1,0.2);
+    catHead.add(ear);
+
+}
+
+createEar(-0.5);
+createEar(0.5);
+
+// Inner ears
+sphere(catHead,-0.5,3.08,0.36,0.13,0.2,0.06,pinkMaterial);
+sphere(catHead,0.5,3.08,0.36,0.13,0.2,0.06,pinkMaterial);
+
+// Eyes
+sphere(catHead,-0.3,2.4,0.78,0.18,0.2,0.08,whiteMaterial);
+sphere(catHead,0.3,2.4,0.78,0.18,0.2,0.08,whiteMaterial);
+
+// Pupils
+const leftPupil = sphere(
+    catHead,-0.3,2.4,0.86,0.08,0.11,0.05,blackMaterial
+);
+
+const rightPupil = sphere(
+    catHead,0.3,2.4,0.86,0.08,0.11,0.05,blackMaterial
+);
+
+// Nose
+sphere(catHead,0,2.15,0.83,0.12,0.09,0.08,pinkMaterial);
+
+// Mouth
+sphere(catHead,-0.1,2.03,0.82,0.04,0.1,0.04,blackMaterial);
+sphere(catHead,0.1,2.03,0.82,0.04,0.1,0.04,blackMaterial);
+
+// Legs
+sphere(cat,-0.5,0.25,0.2,0.25,0.5,0.3,catMaterial);
+sphere(cat,0.5,0.25,0.2,0.25,0.5,0.3,catMaterial);
+
+// Tail
+const catTailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.5,1,-0.3),
+    new THREE.Vector3(1.1,1.2,-0.5),
+    new THREE.Vector3(1.3,1.8,-0.5),
+    new THREE.Vector3(1,2,-0.5)
+]);
+
+const catTail = new THREE.Mesh(
+    new THREE.TubeGeometry(catTailCurve,30,0.08,8,false),
+    catMaterial
+);
+
+cat.add(catTail);
+
+
+// ========================================
+// 6. CREATE THE MOUSE
+// ========================================
+
+const mouse = new THREE.Group();
+scene.add(mouse);
+
+// Body
+sphere(mouse,0,0.3,0,0.4,0.3,0.25,mouseMaterial);
+
+// Head
+sphere(mouse,0,0.45,0.22,0.25,0.25,0.25,mouseMaterial);
+
+// Ears
+sphere(mouse,-0.18,0.7,0.2,0.13,0.18,0.07,pinkMaterial);
+sphere(mouse,0.18,0.7,0.2,0.13,0.18,0.07,pinkMaterial);
+
+// Eyes
+sphere(mouse,-0.1,0.5,0.43,0.04,0.05,0.03,blackMaterial);
+sphere(mouse,0.1,0.5,0.43,0.04,0.05,0.03,blackMaterial);
+
+// Nose
+sphere(mouse,0,0.38,0.48,0.07,0.06,0.05,pinkMaterial);
+
+// Tail
+const mouseTailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0,0.3,-0.2),
+    new THREE.Vector3(0.2,0.25,-0.5),
+    new THREE.Vector3(0.4,0.3,-0.7),
+    new THREE.Vector3(0.5,0.4,-0.9)
+]);
+
+const mouseTail = new THREE.Mesh(
+    new THREE.TubeGeometry(mouseTailCurve,20,0.025,8,false),
+    mouseMaterial
+);
+
+mouse.add(mouseTail);
+
+
+// ========================================
+// 7. GROUND
+// ========================================
+
+const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(30,30),
+    new THREE.MeshStandardMaterial({color:0x111111})
+);
+
+ground.rotation.x = -Math.PI/2;
+ground.position.y = -0.05;
+ground.receiveShadow = true;
+
+scene.add(ground);
+
+
+// ========================================
+// 8. ANIMATION
+// ========================================
+
+const clock = new THREE.Clock();
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    const time = clock.getElapsedTime();
+
+    // Mouse moves around the cat
+    const radius = 3.5;
+    const speed = 1.5;
+    const angle = time * speed;
+
+    mouse.position.x = radius * Math.cos(angle);
+    mouse.position.z = radius * Math.sin(angle);
+
+    // Mouse running bounce
+    mouse.position.y = Math.abs(Math.sin(time * 10)) * 0.15;
+
+    // Mouse faces direction of movement
+    mouse.rotation.y = -angle;
+
+    // Cat follows mouse with its eyes
+    const dx = mouse.position.x;
+    const dz = mouse.position.z;
+
+    //const eyeX = Math.max(-0.08,Math.min(0.08,dx * 0.025));
+    //const eyeY = Math.max(-0.05,Math.min(0.05,-dz * 0.015));
+
+    //leftPupil.position.x = -0.3 + eyeX;
+    //rightPupil.position.x = 0.3 + eyeX;
+
+    //leftPupil.position.y = 2.4 + eyeY;
+    //rightPupil.position.y = 2.4 + eyeY;
+
+    renderer.render(scene,camera);
+
+    // ========================================
+// CAT HEAD FOLLOWS THE MOUSE
+// ========================================
+
+if (mouse.position.z > 0) {
+
+    const targetAngle = Math.atan2(
+        mouse.position.x,
+        mouse.position.z
+    );
+
+    const limitedAngle = THREE.MathUtils.clamp(
+        targetAngle,
+        -0.9,
+        0.9
+    );
+
+    catHead.rotation.y = THREE.MathUtils.lerp(
+        catHead.rotation.y,
+        limitedAngle,
+        0.12
+    );
+
+} else {
+
+    catHead.rotation.y = THREE.MathUtils.lerp(
+        catHead.rotation.y,
+        0,
+        0.12
+    );
+}
+
+}
+
+animate();
+
+
+// ========================================
+// 9. WINDOW RESIZE
+// ========================================
+
+window.addEventListener("resize",() => {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth,window.innerHeight);
+
+});
+
+</script>
+
+</body>
+</html>
+```

@@ -1,0 +1,340 @@
+one legged and lightning
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Conversation with Lightning</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+
+// ========================================
+// 1. SCENE SETUP
+// ========================================
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x17243d);
+scene.fog = new THREE.Fog(0x17243d, 15, 35);
+
+const camera = new THREE.PerspectiveCamera(
+    60, window.innerWidth / window.innerHeight, 0.1, 1000
+);
+
+camera.position.set(0, 5, 12);
+camera.lookAt(0, 2, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// ========================================
+// 2. LIGHTING
+// ========================================
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+mainLight.position.set(5, 10, 5);
+mainLight.castShadow = true;
+scene.add(mainLight);
+
+// Lightning flash light
+const flashLight = new THREE.PointLight(0xaaccff, 0, 50);
+flashLight.position.set(0, 8, -2);
+scene.add(flashLight);
+
+// ========================================
+// 3. MATERIALS
+// ========================================
+
+const skin = new THREE.MeshStandardMaterial({color:0x9b613e});
+const skin2 = new THREE.MeshStandardMaterial({color:0xc58c65});
+const shirt1 = new THREE.MeshStandardMaterial({color:0x2474b5});
+const shirt2 = new THREE.MeshStandardMaterial({color:0x9b4cba});
+const trousers = new THREE.MeshStandardMaterial({color:0x292d42});
+const shoes = new THREE.MeshStandardMaterial({color:0x171717});
+const white = new THREE.MeshStandardMaterial({color:0xffffff});
+const black = new THREE.MeshStandardMaterial({color:0x171717});
+const hair = new THREE.MeshStandardMaterial({color:0x20140f});
+
+// ========================================
+// 4. HELPER FUNCTIONS
+// ========================================
+
+function sphere(parent,x,y,z,sx,sy,sz,material) {
+    const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1,24,24), material
+    );
+    mesh.position.set(x,y,z);
+    mesh.scale.set(sx,sy,sz);
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+function box(parent,x,y,z,sx,sy,sz,material) {
+    const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(sx,sy,sz), material
+    );
+    mesh.position.set(x,y,z);
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+// ========================================
+// 5. CHARACTER CREATION
+// ========================================
+
+function createCharacter(x, shirt, skinColor, hasTwoLegs) {
+
+    const person = new THREE.Group();
+    person.position.x = x;
+    scene.add(person);
+
+    const personSkin = skinColor;
+
+    // BODY
+    const body = new THREE.Group();
+    person.add(body);
+
+    box(body,0,1.65,0,0.85,1.1,0.45,shirt);
+
+    // NECK
+    sphere(body,0,2.3,0,0.18,0.22,0.18,personSkin);
+
+    // HEAD PIVOT
+    const head = new THREE.Group();
+    head.position.set(0,2.45,0);
+    body.add(head);
+
+    sphere(head,0,0.35,0,0.42,0.48,0.38,personSkin);
+
+    // Hair
+    sphere(head,0,0.68,-0.02,0.43,0.23,0.39,hair);
+
+    // Eyes
+    sphere(head,-0.15,0.4,0.34,0.045,0.06,0.035,white);
+    sphere(head,0.15,0.4,0.34,0.045,0.06,0.035,white);
+
+    sphere(head,-0.15,0.4,0.375,0.022,0.035,0.02,black);
+    sphere(head,0.15,0.4,0.375,0.022,0.035,0.02,black);
+
+    // Nose
+    sphere(head,0,0.29,0.39,0.06,0.08,0.06,personSkin);
+
+    // Mouth
+    sphere(head,0,0.17,0.36,0.09,0.025,0.025,black);
+
+    // ARMS
+    const leftArm = new THREE.Group();
+    const rightArm = new THREE.Group();
+
+    leftArm.position.set(-0.5,2.05,0);
+    rightArm.position.set(0.5,2.05,0);
+
+    body.add(leftArm);
+    body.add(rightArm);
+
+    box(leftArm,-0.05,-0.35,0,0.2,0.65,0.22,shirt);
+    sphere(leftArm,-0.05,-0.7,0,0.13,0.13,0.13,personSkin);
+
+    box(rightArm,0.05,-0.35,0,0.2,0.65,0.22,shirt);
+    sphere(rightArm,0.05,-0.7,0,0.13,0.13,0.13,personSkin);
+
+    // LEGS
+    const leftLeg = new THREE.Group();
+    leftLeg.position.set(-0.22,1.1,0);
+    body.add(leftLeg);
+
+    box(leftLeg,0,-0.45,0,0.28,0.9,0.3,trousers);
+    box(leftLeg,0,-0.95,0.1,0.3,0.18,0.48,shoes);
+
+    if (hasTwoLegs) {
+
+        const rightLeg = new THREE.Group();
+        rightLeg.position.set(0.22,1.1,0);
+        body.add(rightLeg);
+
+        box(rightLeg,0,-0.45,0,0.28,0.9,0.3,trousers);
+        box(rightLeg,0,-0.95,0.1,0.3,0.18,0.48,shoes);
+    }
+
+    return {
+        person,
+        body,
+        head,
+        leftArm,
+        rightArm,
+        leftLeg
+    };
+}
+
+// Character 1: Only one leg
+const character1 = createCharacter(
+    -1.7, shirt1, skin, false
+);
+
+// Character 2: Two legs
+const character2 = createCharacter(
+    1.7, shirt2, skin2, true
+);
+
+// ========================================
+// 6. GROUND
+// ========================================
+
+const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(40,40),
+    new THREE.MeshStandardMaterial({color:0x303c48})
+);
+
+ground.rotation.x = -Math.PI/2;
+ground.position.y = -0.08;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ========================================
+// 7. LIGHTNING BOLT
+// ========================================
+
+const lightningGroup = new THREE.Group();
+scene.add(lightningGroup);
+
+const lightningMaterial = new THREE.LineBasicMaterial({
+    color:0xffffff
+});
+
+function createLightningBolt() {
+
+    lightningGroup.clear();
+
+    const x = (Math.random() - 0.5) * 10;
+
+    const points = [
+        new THREE.Vector3(x,9,-3),
+        new THREE.Vector3(x-0.5,8,-3),
+        new THREE.Vector3(x+0.2,7.2,-3),
+        new THREE.Vector3(x-0.4,6.4,-3),
+        new THREE.Vector3(x+0.1,5.5,-3)
+    ];
+
+    const geometry = new THREE.BufferGeometry()
+        .setFromPoints(points);
+
+    const bolt = new THREE.Line(
+        geometry,
+        lightningMaterial
+    );
+
+    lightningGroup.add(bolt);
+
+    // Lightning branch
+    const branchPoints = [
+        points[2],
+        new THREE.Vector3(x+0.9,6.8,-3)
+    ];
+
+    const branchGeometry = new THREE.BufferGeometry()
+        .setFromPoints(branchPoints);
+
+    lightningGroup.add(
+        new THREE.Line(branchGeometry,lightningMaterial)
+    );
+
+    lightningGroup.visible = true;
+}
+
+// ========================================
+// 8. ANIMATION
+// ========================================
+
+const clock = new THREE.Clock();
+
+let nextStrike = 2;
+let flashEnd = 0;
+let flashCount = 0;
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    const time = clock.getElapsedTime();
+
+    // Conversation head movement
+    character1.head.rotation.y =
+        Math.sin(time * 1.5) * 0.18;
+
+    character2.head.rotation.y =
+        -Math.sin(time * 1.5) * 0.18;
+
+    // Talking hand gestures
+    character1.leftArm.rotation.z =
+        Math.sin(time * 3) * 0.35;
+
+    character1.rightArm.rotation.z =
+        -Math.sin(time * 3) * 0.35;
+
+    character2.leftArm.rotation.z =
+        Math.sin(time * 2.5 + 1) * 0.35;
+
+    character2.rightArm.rotation.z =
+        -Math.sin(time * 2.5 + 1) * 0.35;
+
+    // Lightning strike
+    if (time >= nextStrike) {
+
+        createLightningBolt();
+
+        flashLight.intensity = 8;
+
+        flashEnd = time + 0.25;
+
+        flashCount = 1;
+        nextStrike = time + 2 + Math.random() * 3;
+    }
+
+    // Brief repeated flicker
+    if (flashCount === 1 && time > flashEnd - 0.12) {
+        flashLight.intensity = 3;
+        flashCount = 2;
+    }
+
+    if (time >= flashEnd && flashLight.intensity > 0) {
+
+        flashLight.intensity = 0;
+        lightningGroup.visible = false;
+    }
+
+    renderer.render(scene,camera);
+}
+
+animate();
+
+// ========================================
+// 9. WINDOW RESIZE
+// ========================================
+
+window.addEventListener("resize",() => {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth,window.innerHeight);
+
+});
+
+</script>
+
+</body>
+</html>
+:::
